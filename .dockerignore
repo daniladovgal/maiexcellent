@@ -1,0 +1,10 @@
+.git
+.gitignore
+.env*
+storage/logs/*
+storage/framework/cache/*
+node_modules
+*.md
+.gitlab-ci.yml
+Dockerfile*
+docker-compose*

@@ -1,0 +1,122 @@
+version: "3.8"
+
+networks:
+  app-network:
+    driver: bridge
+
+services:
+  php:
+    container_name: php_${APP_NAME}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - 8000:8000
+    restart: unless-stopped
+    user: "${UID}:${GID}"
+    profiles:
+      - production
+      - development
+      - local
+    build:
+      context: docker/php
+      args:
+        PHP_INI_NAME: ${DOCKER_PHP_INI:-php.ini}
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    environment:
+      DB_PORT: ${DB_PORT:-3306}
+      DB_HOST: ${DB_HOST}
+    networks:
+      - app-network
+
+  supervisor:
+    container_name: supervisor_${APP_NAME}
+    user: "${UID}:${GID}"
+    restart: unless-stopped
+    profiles:
+      - production
+      - development
+      - local
+    build:
+      context: docker/supervisor
+      args:
+        PHP_INI_NAME: ${DOCKER_PHP_INI:-php.ini}
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    environment:
+      DB_PORT: ${DB_PORT:-3306}
+    networks:
+      - app-network
+
+  redis:
+    container_name: redis_${APP_NAME}
+    image: redis:latest
+    restart: unless-stopped
+    profiles:
+      - production
+      - development
+      - local
+    ports:
+      - ${REDIS_PORT:-6379}:6379
+    networks:
+      - app-network
+    command: >
+      --requirepass ${REDIS_PASSWORD}
+
+  redisinsight:
+    container_name: redisinsight_${APP_NAME}
+    image: redislabs/redisinsight:latest
+    restart: unless-stopped
+    profiles:
+      - production
+      - development
+      - local
+    ports:
+      - 8001:8001
+    networks:
+      - app-network
+
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: rabbitmq_${APP_NAME}
+    restart: unless-stopped
+    profiles:
+      - production
+      - development
+      - local
+    ports:
+      - 5672:5672
+      - 15672:15672
+    environment:
+      - RABBITMQ_DEFAULT_VHOST=${RABBITMQ_VHOST}
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USERNAME}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
+    networks:
+      - app-network
+
+  mysql:
+    image: mysql:latest
+    container_name: mysql_${APP_NAME}
+    profiles:
+      - local
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_HOST: "%"
+    ports:
+      - 3306:3306
+    volumes:
+      - ./docker/mysql/run:/var/lib/mysql
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 5s
+      retries: 20
+

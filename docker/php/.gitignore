@@ -1,0 +1,7 @@
+*
+!.gitignore
+!Dockerfile
+!php.ini
+!run.sh
+!setup.sh
+!laravel-worker.conf
