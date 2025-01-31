@@ -7,59 +7,54 @@ use Illuminate\Support\Facades\Http;
 
 class MaiexcellentService
 {
-    private int|null $operatorId = null;
+    private int|null $recId = null;
 
     public function __construct(
         private readonly string $username,
         private readonly string $password,
-    ) {
-    }
+    ) {}
 
-    private function getOperatorId(): int
+    private function getRecId(): int
     {
-        if ($this->operatorId) {
-            return $this->operatorId;
+        if ($this->recId) {
+            return $this->recId;
         }
 
-        $url = 'http://online.catttour.com/Sednaapi/api/Integration/AgencyLogin';
+        $url = 'http://online.catttour.com/Sednaapi/api/Integratiion/AgencyLogin';
 
-        $response = Http::withUrlParameters(
-            [
-                'username' => $this->username,
-                'password' => $this->password
-            ]
-        )->get($url);
+        $response = Http::get($url, [
+            'username' => $this->username,
+            'password' => $this->password
+        ]);
 
         $data = $response->json();
 
-        $this->operatorId = $data->RecId;
+        $this->recId = $data['RecId'];
 
-        return $this->operatorId;
+        return $this->recId;
     }
 
     public function getHotels(): Collection
     {
         $url = 'http://online.catttour.com/Sednaapi/api/Integratiion/GetHotelList';
 
-        $response = Http::withUrlParameters(
-            [
-                'operatorId' => $this->getOperatorId(),
-                'isActive' => true,
-            ]
-        )->get($url);
+        $response = Http::get($url, [
+            'operatorId' => $this->getRecId(),
+            'isActive' => true,
+        ]);
 
         $data = $response->json();
 
         $collection = collect();
         foreach ($data as $hotel) {
             $collection->push(new Hotel(
-                id: $hotel->Id,
-                code: $hotel->Code,
-                latitude: $hotel->Latitude,
-                longitude: $hotel->Longitude,
-                address1: $hotel->Address1,
-                address2: $hotel->Address2,
-                address3: $hotel->Address3,
+                id: $hotel['Id'],
+                code: $hotel['Code'],
+                latitude: $hotel['Latitude'],
+                longitude: $hotel['Longitude'],
+                address1: $hotel['Address1'],
+                address2: $hotel['Address2'],
+                address3: $hotel['Address3'],
             ));
         }
 
@@ -68,22 +63,18 @@ class MaiexcellentService
 
     public function getRegions(): Collection
     {
-        $url = 'http://online.catttour.com/Sednaapi/api/Integratiion/GetMainRegions';
+        $url = 'http://online.catttour.com/Sednaapi/api/Integratiion/GetMainRegions?operatorId=' . $this->getRecId();
 
-        $response = Http::withUrlParameters(
-            [
-                'operatorId' => $this->getOperatorId(),
-            ]
-        )->get($url);
+        $response = Http::post($url);
 
         $data = $response->json();
 
         $collection = collect();
         foreach ($data as $region) {
             $collection->push(new Region(
-                id: $region->Id,
-                code: $region->Code,
-                country: $region->Country,
+                id: $region['Id'],
+                code: $region['Code'],
+                country: $region['Country'],
             ));
         }
 
@@ -92,22 +83,18 @@ class MaiexcellentService
 
     public function getSubregions(): Collection
     {
-        $url = 'http://online.catttour.com/Sednaapi/api/Integratiion/GetSubRegions';
+        $url = 'http://online.catttour.com/Sednaapi/api/Integratiion/GetSubRegions?operatorId=' . $this->getRecId();
 
-        $response = Http::withUrlParameters(
-            [
-                'operatorId' => $this->getOperatorId(),
-            ]
-        )->get($url);
+        $response = Http::post($url);
 
         $data = $response->json();
 
         $collection = collect();
         foreach ($data as $subregion) {
             $collection->push(new Subregion(
-                id: $subregion->Id,
-                code: $subregion->Code,
-                regionId: $subregion->MainRegionId,
+                id: $subregion['Id'],
+                code: $subregion['Code'],
+                regionId: $subregion['MainRegionId'],
             ));
         }
 
