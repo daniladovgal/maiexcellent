@@ -2,7 +2,6 @@
 
 namespace App\Modules\Hotel\V1\Services\Hotel;
 
-use App\Common\V1\Enums\SortOrderEnum;
 use App\Modules\Hotel\V1\Models\Hotel;
 use App\Modules\Hotel\V1\Services\Hotel\Dto\CreateHotelDto;
 use App\Modules\Hotel\V1\Services\Hotel\Dto\IndexHotelDto;
@@ -15,7 +14,15 @@ class HotelService
 
     public function index(IndexHotelDto $dto): CursorPaginator
     {
-        return Hotel::orderBy('id', $dto->sortOrder->value)->cursorPaginate(5);
+        $query = Hotel::query();
+
+        if (is_string($dto->search)) {
+            $query->where('id', $dto->search)
+                ->orWhere('address', 'like', '%' . $dto->search . '%')
+                ->orWhere('code', 'like', '%' . $dto->search . '%');
+        }
+
+        return $query->orderBy('id', $dto->sortOrder->value)->cursorPaginate(6);
     }
 
     public function create(CreateHotelDto $dto): Hotel

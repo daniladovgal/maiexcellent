@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->smallInteger('external_operator')->nullable();
             $table->string('external_id')->nullable();
-            $table->string('code')->unique();
-            $table->string('address');
+            $table->string('code')->index()->unique();
+            $table->string('address')->index();
             $table->float('lat')->nullable();
             $table->float('lng')->nullable();
             $table->timestamps();

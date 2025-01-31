@@ -15,9 +15,14 @@ class HotelController extends Controller
 
     public function index(IndexHotelRequest $request)
     {
-        $paginator = $this->hotelService->index(new IndexHotelDto());
+        $search = $request->validated('search');
+
+        $paginator = $this->hotelService->index(new IndexHotelDto(
+            search: $search,
+        ));
 
         return view('hotel.index', [
+            'search' => $search,
             'hotels' => $paginator,
             'pagination' => [
                 'type' => 'cursor',

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('region_id')->references('id')->on('regions')->constrained()->restrictOnDelete();
             $table->smallInteger('external_operator')->nullable();
             $table->string('external_id')->nullable();
-            $table->string('code')->unique();
+            $table->string('code')->index()->unique();
             $table->timestamps();
         });
     }

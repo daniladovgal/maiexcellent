@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->smallInteger('external_operator')->nullable();
             $table->string('external_id')->nullable();
-            $table->string('code')->unique();
+            $table->string('code')->index()->unique();
             $table->string('country');
             $table->timestamps();
         });
