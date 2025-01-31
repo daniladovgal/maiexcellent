@@ -36,12 +36,9 @@ class MaiexcellentService
 
     public function getHotels(): Collection
     {
-        $url = 'http://online.catttour.com/Sednaapi/api/Integratiion/GetHotelList';
+        $url = 'http://online.catttour.com/Sednaapi/api/Integratiion/GetHotelList?operatorId=' . $this->getRecId() . '&isActive=true';
 
-        $response = Http::get($url, [
-            'operatorId' => $this->getRecId(),
-            'isActive' => true,
-        ]);
+        $response = Http::post($url);
 
         $data = $response->json();
 
